@@ -1,28 +1,31 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.OpenApi.Models;
+using WL.Host.DbContexts;
+using WL.Host.Extensions;
+using WL.Host.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+builder.Services
+    .AddControllers()
+    .AddNewtonsoftJson()
+    .AddXmlDataContractSerializerFormatters();
+
+builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
+builder.Services.AddDbContext<WishesContext>(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Version = "v1",
-        Title = "Whishlist API",
-        Description = "Backend for wishlist API",
-        Contact = new OpenApiContact
-        {
-            Name = "Our Contact",
-            Url = new Uri("https://wishlist.com/contact")
-        }
-    });
+    var connectionString = builder.Configuration.GetConnectionString("Main");
+    options.UseSqlite(connectionString);
 });
+builder.Services.AddScoped<IWishRepository, WishRepository>();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwagger();
 builder.Services.AddHealthChecks();
 builder.Services.AddResponseCompression();
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();
 
