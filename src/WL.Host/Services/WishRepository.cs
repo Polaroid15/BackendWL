@@ -16,7 +16,6 @@ public class WishRepository : IWishRepository
     public async Task AddWishAsync(Wish wish)
     {
         await _context.Wishes.AddAsync(wish);
-        await _context.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<Wish>> GetWishesAsync()
@@ -29,11 +28,14 @@ public class WishRepository : IWishRepository
         return await _context.Wishes.FirstOrDefaultAsync(x => x.Id == wishId);
     }
 
-    public async Task<bool> DeleteAsync(Guid wishId)
+    public void Delete(Guid wishId)
     {
         var wish = new Wish() { Id = wishId };
         _context.Wishes.Remove(wish);
-        await _context.SaveChangesAsync();
-        return true;
+    }
+
+    public async Task<bool> SaveChangesAsync()
+    {
+        return await _context.SaveChangesAsync() >= 0;
     }
 }

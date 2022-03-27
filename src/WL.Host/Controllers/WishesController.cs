@@ -29,6 +29,15 @@ public class WishesController : ControllerBase
         _contentTypeProvider = contentTypeProvider ?? throw new ArgumentNullException(nameof(contentTypeProvider));
     }
 
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public async Task<IActionResult> AddWish(Wish wish)
+    {
+        await _wishRepository.AddWishAsync(wish);
+        await _wishRepository.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetWish), new { wish.Id}, wish);
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult> GetWish(Guid id)
     {
@@ -51,23 +60,25 @@ public class WishesController : ControllerBase
         return Ok(_mapper.Map<IEnumerable<WishDto>>(wishes));
     }
 
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<ActionResult> AddWish(Wish wish)
-    {
-        await _wishRepository.AddWishAsync(wish);
-        return CreatedAtAction(nameof(GetWish), new { wish.Id}, wish);
-    }
-
     [HttpDelete]
-    public async Task<ActionResult> DeleteWish(Guid id)
+    public async Task<IActionResult> DeleteWish(Guid id)
     {
-        await _wishRepository.DeleteAsync(id);
+        _wishRepository.Delete(id);
+        await _wishRepository.SaveChangesAsync();
         return NoContent();
     }
 
-    [HttpPatch("[action]")]
-    public async Task<ActionResult> PatchSomething(Guid id, JsonPatchDocument<Wish> patchWish)
+    [HttpPut]
+    public async Task<IActionResult> UpdateWish(Guid id, UpdateWishDto updateWish)
+    {
+        var wish = await _wishRepository.GetWishAsync(id);
+        _mapper.Map(updateWish, wish);
+        await _wishRepository.SaveChangesAsync();
+        return NoContent();
+    }
+    
+    [HttpPatch("{id}")]
+    public async Task<ActionResult> PatchSomething(Guid id, JsonPatchDocument<UpdateWishDto> patchWish)
     {
         var wish = await _wishRepository.GetWishAsync(id);
         if (wish == null)
@@ -75,12 +86,7 @@ public class WishesController : ControllerBase
             return NotFound();
         }
 
-        var newWish = new Wish()
-        {
-            Id = id,
-            Name = wish.Name,
-            Description = wish.Description,
-        };
+        var newWish = _mapper.Map<UpdateWishDto>(wish);
         
         patchWish.ApplyTo(newWish, ModelState);
 
@@ -93,9 +99,9 @@ public class WishesController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-
-        wish.Name = newWish.Name;
-        wish.Description = newWish.Description;
+        
+        _mapper.Map(newWish, wish);
+        await _wishRepository.SaveChangesAsync();
         
         return NoContent();
     }

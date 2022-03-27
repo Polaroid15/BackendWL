@@ -7,5 +7,6 @@ public interface IWishRepository
     Task AddWishAsync(Wish wish);
     Task<IEnumerable<Wish>> GetWishesAsync();
     Task<Wish?> GetWishAsync(Guid wishId);
-    Task<bool> DeleteAsync(Guid wishId);
+    void Delete(Guid wishId);
+    Task<bool> SaveChangesAsync();
 }

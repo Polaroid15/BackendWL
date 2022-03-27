@@ -26,10 +26,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Controllers" />
-    </ItemGroup>
-
-    <ItemGroup>
         <None Update="Profile.pdf">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>

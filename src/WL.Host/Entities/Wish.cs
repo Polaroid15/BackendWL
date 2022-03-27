@@ -6,9 +6,8 @@ namespace WL.Host.Entities;
 public class Wish
 {
     [Key]
-    [Required]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     public int WishCategoryId { get; set; }
     
