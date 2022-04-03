@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,7 @@ public class WishesController : ControllerBase
     private readonly IWishRepository _wishRepository;
     private readonly IMapper _mapper;
     private readonly FileExtensionContentTypeProvider _contentTypeProvider;
+    private const int MAX_PAGE_SIZE = 3;
 
     public WishesController(
         ILogger<WishesController> logger,
@@ -35,7 +37,7 @@ public class WishesController : ControllerBase
     {
         await _wishRepository.AddWishAsync(wish);
         await _wishRepository.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetWish), new { wish.Id}, wish);
+        return CreatedAtAction(nameof(GetWish), new { wish.Id }, wish);
     }
 
     [HttpGet("{id}")]
@@ -46,17 +48,28 @@ public class WishesController : ControllerBase
         {
             return NotFound();
         }
+
         _logger.LogInformation("wish name is: {name}", wish.Name);
 
         return Ok(wish);
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<WishDto>>> GetWishes()
+    public async Task<ActionResult<IEnumerable<WishDto>>> GetWishes(
+        [FromQuery] string? name,
+        [FromQuery] string? searchQuery,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 2)
     {
-        var wishes = await _wishRepository.GetWishesAsync();
+        if (pageSize > MAX_PAGE_SIZE)
+        {
+            pageSize = MAX_PAGE_SIZE;
+        }
+
+        var (wishes, metadata) = await _wishRepository.GetWishesAsync(name, searchQuery, pageNumber, pageSize);
         _logger.LogInformation("wishes count is: {count}", wishes.Count());
 
+        Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(metadata));
         return Ok(_mapper.Map<IEnumerable<WishDto>>(wishes));
     }
 
@@ -76,7 +89,7 @@ public class WishesController : ControllerBase
         await _wishRepository.SaveChangesAsync();
         return NoContent();
     }
-    
+
     [HttpPatch("{id}")]
     public async Task<ActionResult> PatchSomething(Guid id, JsonPatchDocument<UpdateWishDto> patchWish)
     {
@@ -87,7 +100,7 @@ public class WishesController : ControllerBase
         }
 
         var newWish = _mapper.Map<UpdateWishDto>(wish);
-        
+
         patchWish.ApplyTo(newWish, ModelState);
 
         if (!ModelState.IsValid)
@@ -99,10 +112,10 @@ public class WishesController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-        
+
         _mapper.Map(newWish, wish);
         await _wishRepository.SaveChangesAsync();
-        
+
         return NoContent();
     }
 
