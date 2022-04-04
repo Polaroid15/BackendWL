@@ -1,5 +1,6 @@
 using System.Text.Json;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
@@ -10,6 +11,7 @@ using WL.Host.Services;
 namespace WL.Host.Controllers;
 
 [ApiController]
+[Authorize(Policy = "MustHaveUsernamePolaroid15")]
 [Route("api/[controller]")]
 public class WishesController : ControllerBase
 {
@@ -43,6 +45,12 @@ public class WishesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult> GetWish(Guid id)
     {
+        var user = User.Claims.FirstOrDefault(u => u.Type == "id")?.Value;
+
+        if (string.IsNullOrEmpty(user))
+        {
+            return Forbid();
+        }
         var wish = await _wishRepository.GetWishAsync(id);
         if (wish == null)
         {
@@ -54,7 +62,17 @@ public class WishesController : ControllerBase
         return Ok(wish);
     }
 
+    /// <summary>
+    /// Get pagination wishes
+    /// </summary>
+    /// <param name="name">Filter by name.</param>
+    /// <param name="searchQuery">Parameter to search wishes.</param>
+    /// <param name="pageNumber">Page number for pagination.</param>
+    /// <param name="pageSize">Page size of pagination.</param>
+    /// <returns>An IActionResult</returns>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<WishDto>>> GetWishes(
         [FromQuery] string? name,
         [FromQuery] string? searchQuery,
