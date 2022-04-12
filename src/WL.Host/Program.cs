@@ -8,8 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using WL.Host.DbContexts;
-using WL.Host.Extensions;
 using WL.Host.Services;
+using BlackListService = WL.BlackList.BlackListService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +19,8 @@ builder.Services
     .AddXmlDataContractSerializerFormatters();
 
 builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
+builder.Services.AddTransient<IBlackListService, WL.Host.Services.BlackListService>();
+builder.Services.AddGrpcClient<BlackListService.BlackListServiceClient>(o => o.Address = new Uri(builder.Configuration["ApiConfig:BlackList:Uri"]));
 builder.Services.AddDbContext<WishesContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("Main");

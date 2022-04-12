@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WL.Host", "src\WL.Host\WL.Host.csproj", "{ECC58419-2163-4C25-BE5E-CFE922127C8E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WL.BlackList", "src\WL.BlackList\WL.BlackList.csproj", "{1BFA5CB1-43B8-4016-886F-A20436AC9EDF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Protos", "Protos", "{FEEEF613-4080-4FDE-A690-56CD03F50AD9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +16,9 @@ Global
 		{ECC58419-2163-4C25-BE5E-CFE922127C8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ECC58419-2163-4C25-BE5E-CFE922127C8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ECC58419-2163-4C25-BE5E-CFE922127C8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1BFA5CB1-43B8-4016-886F-A20436AC9EDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1BFA5CB1-43B8-4016-886F-A20436AC9EDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1BFA5CB1-43B8-4016-886F-A20436AC9EDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1BFA5CB1-43B8-4016-886F-A20436AC9EDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -11,13 +11,14 @@ using WL.Host.Services;
 namespace WL.Host.Controllers;
 
 [ApiController]
-[Authorize(Policy = "MustHaveUsernamePolaroid15")]
+// [Authorize(Policy = "MustHaveUsernamePolaroid15")]
 [Route("api/[controller]")]
 public class WishesController : ControllerBase
 {
     private readonly ILogger<WishesController> _logger;
     private readonly IWishRepository _wishRepository;
     private readonly IMapper _mapper;
+    private readonly IBlackListService _blackListService;
     private readonly FileExtensionContentTypeProvider _contentTypeProvider;
     private const int MAX_PAGE_SIZE = 3;
 
@@ -25,11 +26,13 @@ public class WishesController : ControllerBase
         ILogger<WishesController> logger,
         IWishRepository wishRepository,
         IMapper mapper,
+        IBlackListService blackListService,
         FileExtensionContentTypeProvider contentTypeProvider)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _wishRepository = wishRepository ?? throw new ArgumentNullException(nameof(wishRepository));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        _blackListService = blackListService ?? throw new ArgumentNullException(nameof(blackListService));
         _contentTypeProvider = contentTypeProvider ?? throw new ArgumentNullException(nameof(contentTypeProvider));
     }
 
@@ -46,7 +49,7 @@ public class WishesController : ControllerBase
     public async Task<ActionResult> GetWish(Guid id)
     {
         var user = User.Claims.FirstOrDefault(u => u.Type == "id")?.Value;
-
+        
         if (string.IsNullOrEmpty(user))
         {
             return Forbid();
@@ -57,7 +60,9 @@ public class WishesController : ControllerBase
             return NotFound();
         }
 
-        _logger.LogInformation("wish name is: {name}", wish.Name);
+        var blackListItems = await _blackListService.GetBlackListItems(id);
+
+        _logger.LogInformation("wish name is: {name}. BlackList count of wish: {count}", wish.Name, blackListItems.Count);
 
         return Ok(wish);
     }
