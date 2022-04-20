@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option csharp_namespace = "WL.BlackList";
+
+package blacklist;
+
+service BlackListService {
+  rpc GetBlackList (GetBlackListByWishIdRequest) returns (BlackListResponse);
+}
+
+message GetBlackListByWishIdRequest {
+  string wishId = 1;
+}
+
+message BlackListResponse {
+  repeated BlackListItem Items = 1;
+}
+
+message BlackListItem {
+  int32 id = 1;
+  string name = 2;
+}

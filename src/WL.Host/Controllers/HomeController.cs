@@ -18,7 +18,6 @@ public class HomeController : ControllerBase
         var context = HttpContext.Features.Get<IExceptionHandlerFeature>();
         int statusCode;
         string title;
-        var fullError = configuration.GetSection("AllowFullError").Get<bool>() ? context?.Error.ToString() : null;
 
         switch (context?.Error)
         {
@@ -47,6 +46,6 @@ public class HomeController : ControllerBase
         return Problem(
             title: title,
             statusCode: statusCode,
-            detail: fullError);
+            detail: context?.Error.ToString());
     }
 }
