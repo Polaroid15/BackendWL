@@ -1,9 +1,12 @@
+using System.Net;
 using System.Text;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
+using Polly;
+using Polly.Extensions.Http;
 using Serilog;
 using WL.Host.DbContexts;
 using WL.Host.Extensions;
@@ -17,9 +20,18 @@ builder.Services
     .AddXmlDataContractSerializerFormatters();
 
 builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
+
 builder.Services.AddTransient<IBlackListService, BlackListService>();
+
 builder.Services.AddGrpcClient<WL.BlackList.BlackListService.BlackListServiceClient>(o =>
     o.Address = new Uri(builder.Configuration["ApiConfig:BlackList:Uri"]));
+
+builder.Services.AddHttpClient<IWishBasketService, WishBasketService>(client =>
+        client.BaseAddress = new Uri(builder.Configuration["ApiConfig:WishBasket:Uri"]))
+    .SetHandlerLifetime(TimeSpan.FromMinutes(5))
+    .AddPolicyHandler(GetRetryPolicy())
+    .AddPolicyHandler(GetCircuitBreakerPolicy());
+
 builder.Services.AddDbContext<WishesContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("Main");
@@ -59,11 +71,6 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
-builder.Services.AddHttpClient<IWishBasketService, WishBasketService>(client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["ApiConfig:WishBasket:Uri"]);
-});
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -96,3 +103,18 @@ app.UseEndpoints(endpoints =>
 });
 
 app.Run();
+
+static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .OrResult(msg => msg.StatusCode == HttpStatusCode.NotFound)
+        .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+}
+
+static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .CircuitBreakerAsync(3, TimeSpan.FromSeconds(3));
+}
