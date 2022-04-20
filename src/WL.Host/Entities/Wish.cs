@@ -7,7 +7,7 @@ public class Wish
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; }
 
     public int WishCategoryId { get; set; }
     

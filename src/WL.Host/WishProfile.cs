@@ -9,6 +9,7 @@ public class WishProfile : Profile
     public WishProfile()
     {
         CreateMap<Wish, WishDto>();
+        CreateMap<WishDto, Wish>();
         CreateMap<UpdateWishDto, Wish>();
         CreateMap<Wish, UpdateWishDto>();
     }

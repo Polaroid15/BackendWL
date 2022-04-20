@@ -36,17 +36,28 @@ public class WishesController : ControllerBase
         _contentTypeProvider = contentTypeProvider ?? throw new ArgumentNullException(nameof(contentTypeProvider));
     }
 
+    /// <summary>
+    /// Create new wish.
+    /// </summary>
+    /// <param name="wish">New wish <see cref="Wish"/>.</param>
+    /// <returns></returns>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<IActionResult> AddWish(Wish wish)
+    public async Task<IActionResult> Create(WishDto wish)
     {
-        await _wishRepository.AddWishAsync(wish);
+        var wishEntity = _mapper.Map<Wish>(wish);
+        await _wishRepository.AddWishAsync(wishEntity);
         await _wishRepository.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetWish), new { wish.Id }, wish);
+        return CreatedAtAction(nameof(Get), new { wishEntity.Id }, wish);
     }
 
+    /// <summary>
+    /// Get wish.
+    /// </summary>
+    /// <param name="id">id of with.</param>
+    /// <returns>Wish.</returns>
     [HttpGet("{id}")]
-    public async Task<ActionResult> GetWish(Guid id)
+    public async Task<ActionResult> Get(Guid id)
     {
         var user = User.Claims.FirstOrDefault(u => u.Type == "id")?.Value;
         
@@ -96,16 +107,26 @@ public class WishesController : ControllerBase
         return Ok(_mapper.Map<IEnumerable<WishDto>>(wishes));
     }
 
+    /// <summary>
+    /// Delete wish.
+    /// </summary>
+    /// <param name="id">id of wish.</param>
     [HttpDelete]
-    public async Task<IActionResult> DeleteWish(Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         _wishRepository.Delete(id);
         await _wishRepository.SaveChangesAsync();
         return NoContent();
     }
 
+    /// <summary>
+    /// Update wish.
+    /// </summary>
+    /// <param name="id">id of wish.</param>
+    /// <param name="updateWish">New wish.</param>
+    /// <returns>Wish.</returns>
     [HttpPut]
-    public async Task<IActionResult> UpdateWish(Guid id, UpdateWishDto updateWish)
+    public async Task<IActionResult> Update(Guid id, Wish updateWish)
     {
         var wish = await _wishRepository.GetWishAsync(id);
         _mapper.Map(updateWish, wish);
@@ -113,6 +134,12 @@ public class WishesController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Update part of old wish.
+    /// </summary>
+    /// <param name="id">id of wish.</param>
+    /// <param name="patchWish">Instructions for update.</param>
+    /// <returns></returns>
     [HttpPatch("{id}")]
     public async Task<ActionResult> PatchSomething(Guid id, JsonPatchDocument<UpdateWishDto> patchWish)
     {

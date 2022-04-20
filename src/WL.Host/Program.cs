@@ -1,15 +1,13 @@
-using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using Serilog;
 using WL.Host.DbContexts;
+using WL.Host.Extensions;
 using WL.Host.Services;
-using BlackListService = WL.BlackList.BlackListService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,8 +17,9 @@ builder.Services
     .AddXmlDataContractSerializerFormatters();
 
 builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
-builder.Services.AddTransient<IBlackListService, WL.Host.Services.BlackListService>();
-builder.Services.AddGrpcClient<BlackListService.BlackListServiceClient>(o => o.Address = new Uri(builder.Configuration["ApiConfig:BlackList:Uri"]));
+builder.Services.AddTransient<IBlackListService, BlackListService>();
+builder.Services.AddGrpcClient<WL.BlackList.BlackListService.BlackListServiceClient>(o =>
+    o.Address = new Uri(builder.Configuration["ApiConfig:BlackList:Uri"]));
 builder.Services.AddDbContext<WishesContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("Main");
@@ -31,34 +30,7 @@ builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Confi
 builder.Services.AddScoped<IWishRepository, WishRepository>();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(setup =>
-{
-    var xmlCommentsFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlCommentsFullPath = Path.Combine(AppContext.BaseDirectory, xmlCommentsFile);
-    setup.IncludeXmlComments(xmlCommentsFullPath);
-
-    var schemeId = "WishInfoApiBearerAuth";
-    setup.AddSecurityDefinition(schemeId, new OpenApiSecurityScheme()
-    {
-        Type = SecuritySchemeType.Http,
-        Scheme = "Bearer",
-        Description = "Input a valid token to access this API",
-    });
-    setup.AddSecurityRequirement(new OpenApiSecurityRequirement()
-    {
-        {
-            new OpenApiSecurityScheme()
-            {
-                Reference = new OpenApiReference()
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = schemeId,
-                },
-            },
-            new List<string>()
-        },
-    });
-});
+builder.Services.AddSwagger();
 builder.Services.AddHealthChecks();
 builder.Services.AddResponseCompression();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -85,6 +57,11 @@ builder.Services.AddAuthorization(options =>
         policy.RequireAuthenticatedUser();
         policy.RequireClaim("user_name", "Polaroid15");
     });
+});
+
+builder.Services.AddHttpClient<IWishBasketService, WishBasketService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiConfig:WishBasket:Uri"]);
 });
 
 var app = builder.Build();
