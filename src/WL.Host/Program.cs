@@ -23,8 +23,11 @@ builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
 
 builder.Services.AddTransient<IBlackListService, BlackListService>();
 
-builder.Services.AddGrpcClient<WL.BlackList.BlackListService.BlackListServiceClient>(o =>
-    o.Address = new Uri(builder.Configuration["ApiConfig:BlackList:Uri"]));
+builder.Services.AddGrpcClient<WL.BlackList.BlackListService.BlackListServiceClient>(client =>
+        client.Address = new Uri(builder.Configuration["ApiConfig:BlackList:Uri"]))
+    .SetHandlerLifetime(TimeSpan.FromMinutes(5))
+    .AddPolicyHandler(GetRetryPolicy())
+    .AddPolicyHandler(GetCircuitBreakerPolicy());
 
 builder.Services.AddHttpClient<IWishBasketService, WishBasketService>(client =>
         client.BaseAddress = new Uri(builder.Configuration["ApiConfig:WishBasket:Uri"]))
