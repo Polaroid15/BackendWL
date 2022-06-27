@@ -13,6 +13,8 @@ using WL.Host.Extensions;
 using WL.Host.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.ClearProviders();
+builder.Host.UseSerilogProvider(builder.Configuration["Elasticsearch:Url"]);
 
 builder.Services
     .AddControllers()

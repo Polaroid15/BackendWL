@@ -33,10 +33,6 @@ public class HomeController : ControllerBase
                 statusCode = 405;
                 title = "Method Not Allowed";
                 break;
-            case NotImplementedException nie:
-                statusCode = 501;
-                title = "Not Implemented";
-                break;
             default:
                 statusCode = 500;
                 title = "Internal Server Error";
