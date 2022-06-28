@@ -33,7 +33,8 @@ static IServiceProvider CreateServices()
 static void UpdateDatabase(IServiceProvider serviceProvider)
 {
     var runner = serviceProvider.GetRequiredService<IMigrationRunner>();
-    runner.MigrateDown(0);
+    runner.MigrateUp();
+    // runner.MigrateUp(); for set new migrations 
     // runner.MigrateDown(0); for revert to version 0
     // runner.MigrateDown(migrationNumber); for revert to version migrationNumber
     //[Migration(202206031314, "WISH-999. Create table migr_test for MainApp")]
