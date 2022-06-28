@@ -1,6 +1,6 @@
 using FluentMigrator;
 
-namespace Backend.Migration.Migrations._2022; 
+namespace WL.Migration.Migrations._2022; 
 
 [Migration(202206031314, "WISH-1. Create init tables for Wishlist App")]
 public class V1_280620220011_initDb : FluentMigrator.Migration {

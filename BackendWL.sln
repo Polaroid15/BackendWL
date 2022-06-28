@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Protos", "Protos", "{FEEEF6
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WL.WishBasket", "src\WL.WishBasket\WL.WishBasket.csproj", "{051F9E54-1BD7-4984-8F19-B8FD7FA97354}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend.Migration", "Backend.Migration\Backend.Migration.csproj", "{57F9F371-21CC-401D-A705-7B490D8A4F4E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WL.Migration", "WL.Migration\WL.Migration.csproj", "{57F9F371-21CC-401D-A705-7B490D8A4F4E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
