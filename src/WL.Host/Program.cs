@@ -14,7 +14,12 @@ using WL.Host.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
-builder.Host.UseSerilogProvider(builder.Configuration["Elasticsearch:Url"]);
+var elasticSettings = new ElasticSettings() {
+    Url = builder.Configuration["Elasticsearch:Url"],
+    Login = builder.Configuration["Elasticsearch:Login"],
+    Password = builder.Configuration["Elasticsearch:Password"]
+};
+builder.Host.UseSerilogProvider(elasticSettings);
 
 builder.Services
     .AddControllers()

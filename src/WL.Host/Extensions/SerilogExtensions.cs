@@ -5,7 +5,7 @@ using Serilog.Sinks.Elasticsearch;
 namespace WL.Host.Extensions; 
 
 public static class SerilogExtensions {
-    public static void UseSerilogProvider(this IHostBuilder hostBuilder, string elasticSearchUrl = "") {
+    public static void UseSerilogProvider(this IHostBuilder hostBuilder, ElasticSettings? settings = null) {
         hostBuilder.UseSerilog((context, configuration) => {
             var indexFormat =
                 $"{context.HostingEnvironment.ApplicationName}-logs-{context.HostingEnvironment.EnvironmentName}-{DateTime.UtcNow:dd-MM-yyyy}";
@@ -13,11 +13,12 @@ public static class SerilogExtensions {
                 .ReadFrom.Configuration(context.Configuration)
                 .WriteTo.Console(outputTemplate:
                     "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}");
-            if (!string.IsNullOrEmpty(elasticSearchUrl)) {
+            if (settings != null) {
                 configuration
-                    .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(elasticSearchUrl)) {
+                    .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(settings.Url)) {
                         AutoRegisterTemplate = true,
                         AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv7,
+                        ModifyConnectionSettings = config => config.BasicAuthentication(settings.Login, settings.Password),
                         IndexFormat = indexFormat,
                         InlineFields = true,
                     })
